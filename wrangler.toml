@@ -1,0 +1,37 @@
+name = "favroe"
+pages_build_output_dir = "public"
+compatibility_date = "2026-10-01"
+
+# KV namespace ids are filled in after creation (wrangler pages / api).
+[[kv_namespaces]]
+binding = "ORDERS"
+id = "0965c76dc91b4292b340cd4ce0644981"
+[[kv_namespaces]]
+binding = "RESERVATIONS"
+id = "d96cffc47ae5450e81d6d7185013d2b4"
+[[kv_namespaces]]
+binding = "INQUIRIES"
+id = "c9238a92d69045fab652c3c9912d822c"
+[[kv_namespaces]]
+binding = "EVENTS"
+id = "e9a6cf2a67a94ceb9c3a3f48ec0a21ea"
+[[kv_namespaces]]
+binding = "CONFIG"
+id = "04a3f24a832f410b898a1dbf67e72635"
+
+[vars]
+FAVROE_CHECKOUT_ENABLED = "true"
+FAVROE_PAYMENT_MODE = "test"
+FAVROE_LAUNCH_APPROVED = "false"
+FAVROE_PUBLIC_ORIGIN = "https://favroe.com"
+FAVROE_AUTOMATIC_TAX = "true"
+FAVROE_SHIPPING_COUNTRIES = "US"
+FAVROE_MAX_SETS_PER_ORDER = "400"
+STRIPE_PRICE_PINK_50 = "price_1UVmPsC0hZh3AYsHXb2ER7AN"
+STRIPE_PRICE_PINK_100 = "price_1UVmQFC0hZh3AYsHWOFiIhHc"
+STRIPE_PRICE_PINK_200 = "price_1UVmQaC0hZh3AYsHnTR73tVn"
+STRIPE_PRICE_PINK_400 = "price_1UVmQtC0hZh3AYsHoRDxPFRQ"
+STRIPE_SHIPPING_RATE_ID = "shr_1UVnWSC0hZh3AYsHHELDcG56"
+FAVROE_NOTIFY_EMAIL = "essentials@favroe.com"
+RESEND_FROM = "FAVROE <onboarding@resend.dev>"
+# Secrets set via wrangler pages secret put: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, FAVROE_OPS_TOKEN, RESEND_API_KEY
