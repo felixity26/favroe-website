@@ -4,3 +4,12 @@
   Cache-Control: public, max-age=0, must-revalidate
 /ops.js
   Cache-Control: public, max-age=0, must-revalidate
+/footer.css
+  Cache-Control: public, max-age=0, must-revalidate
+/newsletter.js
+  Cache-Control: public, max-age=0, must-revalidate
+/newsletter-preferences.js
+  Cache-Control: public, max-age=0, must-revalidate
+/newsletter/*
+  Referrer-Policy: no-referrer
+  Cache-Control: no-store

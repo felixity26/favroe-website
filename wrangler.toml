@@ -20,6 +20,9 @@ binding = "CONFIG"
 id = "04a3f24a832f410b898a1dbf67e72635"
 
 [vars]
+FAVROE_NEWSLETTER_ENABLED = "true"
+RESEND_NEWSLETTER_SEGMENT_ID = "2b0f284b-6538-4e31-9fbb-3d0b8c169757"
+RESEND_NEWSLETTER_TOPIC_ID = "f37baf2d-32f4-4c52-8405-f7a898135844"
 FAVROE_CHECKOUT_ENABLED = "true"
 FAVROE_PAYMENT_MODE = "test"
 FAVROE_LAUNCH_APPROVED = "false"
@@ -33,7 +36,7 @@ STRIPE_PRICE_PINK_200 = "price_1UVmQaC0hZh3AYsHnTR73tVn"
 STRIPE_PRICE_PINK_400 = "price_1UVmQtC0hZh3AYsHoRDxPFRQ"
 STRIPE_SHIPPING_RATE_ID = "shr_1UVnWSC0hZh3AYsHHELDcG56"
 FAVROE_NOTIFY_EMAIL = "essentials@favroe.com"
-RESEND_FROM = "FAVROE <onboarding@resend.dev>"
+RESEND_FROM = "FAVRŒ <essentials@favroe.com>"
 # Secrets set via wrangler pages secret put: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, FAVROE_OPS_TOKEN, RESEND_API_KEY
 
 [[d1_databases]]
@@ -41,3 +44,9 @@ binding = "INVENTORY_DB"
 database_name = "favroe-inventory"
 database_id = "681e38aa-5447-4d25-936b-9e209357b568"
 migrations_dir = "migrations"
+
+[[d1_databases]]
+binding = "NEWSLETTER_DB"
+database_name = "favroe-newsletter"
+database_id = "87687017-4dc9-4b04-81d1-62709d729620"
+migrations_dir = "newsletter-migrations"
