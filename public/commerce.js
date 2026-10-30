@@ -3,6 +3,7 @@
  const config=window.FAVROE_COMMERCE,core=window.FavroeCart;if(!config||!core)return;
  const root=new URL('.',document.currentScript.src),route=(path)=>new URL(path,root).href;
  const money=cents=>new Intl.NumberFormat('en-US',{style:'currency',currency:config.currency}).format(cents/100);
+ const analytics=(name,lines)=>{const items=lines.map(line=>{const item=core.item(config,line.key);return {item_id:line.key,item_name:item.pack.name,price:item.pack.cents/100,quantity:line.quantity};});document.dispatchEvent(new CustomEvent('favroe:commerce',{detail:{name,data:{currency:'USD',value:Math.round(items.reduce((sum,item)=>sum+item.price*item.quantity,0)*100)/100,items}}}));};
  const key='favroe-shopping-bag-v1';let cart=[];
  try{cart=core.normalize(config,JSON.parse(localStorage.getItem(key)||'[]'));}catch{}
  if(location.protocol==='file:'){try{const carried=new URLSearchParams(location.search).get('bag');if(carried)cart=core.normalize(config,JSON.parse(carried));}catch{}document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a)return;const u=new URL(a.href);if(u.protocol==='file:'&&u.pathname.endsWith('.html')){u.searchParams.set('bag',JSON.stringify(cart));a.href=u.href;}});}
@@ -26,7 +27,7 @@
    message.textContent='';
   }
   finishInputs.forEach(i=>i.addEventListener('change',render));pack.addEventListener('change',render);count.addEventListener('input',render);
-  document.querySelector('#shop-add').addEventListener('click',()=>{const qty=Number(count.value),finish=selected();if(!Number.isInteger(qty)||qty<1||qty>20||!config.finishes[finish].selectable)return;add(`${finish}-${pack.value}`,qty);message.textContent=`${config.finishes[finish].label} · ${pack.value}-set pack added to your bag. Review your bag to continue.`;});
+  document.querySelector('#shop-add').addEventListener('click',()=>{const qty=Number(count.value),finish=selected();if(!Number.isInteger(qty)||qty<1||qty>20||!config.finishes[finish].selectable)return;add(`${finish}-${pack.value}`,qty);analytics('add_to_cart',[{key:`${finish}-${pack.value}`,quantity:qty}]);message.textContent=`${config.finishes[finish].label} · ${pack.value}-set pack added to your bag. Review your bag to continue.`;});
   render();
  }
  const paymentStatus=document.querySelector('#payment-status');
@@ -64,7 +65,7 @@
    const delivery=Object.fromEntries(['name','email','line1','line2','city','postal_code'].map(k=>[k,document.querySelector('#delivery-'+k)?.value||'']));
    const payload=JSON.stringify({lines:result.lines,state:stateEl?stateEl.value:'',delivery});if(payload!==attemptBody){attemptBody=payload;attemptKey=crypto.randomUUID();}
    checkout.disabled=true;status.textContent='Opening secure Stripe checkout…';
-   try{const response=await fetch(route(config.checkout.endpoint),{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':attemptKey},body:payload});const data=await response.json();if(!response.ok)throw new Error(data.error||'Checkout could not be opened.');const target=new URL(data.url);if(target.protocol!=='https:'||target.hostname!=='checkout.stripe.com')throw new Error('The payment destination could not be verified.');location.assign(target.href);}catch(e){status.textContent=e.message;checkout.disabled=false;}
+   try{const response=await fetch(route(config.checkout.endpoint),{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':attemptKey},body:payload});const data=await response.json();if(!response.ok)throw new Error(data.error||'Checkout could not be opened.');const target=new URL(data.url);if(target.protocol!=='https:'||target.hostname!=='checkout.stripe.com')throw new Error('The payment destination could not be verified.');analytics('begin_checkout',result.lines);location.assign(target.href);}catch(e){status.textContent=e.message;checkout.disabled=false;}
   });render();
   const cancelled=new URLSearchParams(location.search).get('cancel');
   if(cancelled&&/^[a-f0-9-]{36}$/i.test(cancelled))fetch(route('api/cancel-checkout'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reference:cancelled})}).then(async r=>{const d=await r.json();status.textContent=r.ok?'Checkout cancelled. Your bag is here when you need it.':d.error;}).catch(()=>{status.textContent='Your bag is saved. Checkout cancellation could not be confirmed; contact us before trying again.';});
