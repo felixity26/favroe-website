@@ -1,38 +1,19 @@
-// Cloudflare KV adapter - same shape as the Netlify Blobs store.
-// KV is eventually consistent (~60s propagation), same tolerance the
-// recompute-from-records design already relies on with Blobs.
-const mk=ns=>({
-  async get(key,opts={}){const v=await ns.get(key,opts.type==='json'?'json':'text');return v;},
-  async setJSON(key,val){await ns.put(key,JSON.stringify(val));},
-  async set(key,val){await ns.put(key,val);},
-  async delete(key){await ns.delete(key);},
-  async list(){const out=[];let cursor;do{const r=await ns.list({cursor});for(const k of r.keys)out.push({key:k.name});cursor=r.list_complete?undefined:r.cursor;}while(cursor);return {blobs:out};}
+// Request-scoped KV access. KV remains unsuitable for atomic inventory allocation.
+export const store=ns=>({
+ get:(key,opts={})=>ns.get(key,opts.type==='json'?'json':'text'),
+ setJSON:(key,val,opts={})=>ns.put(key,JSON.stringify(val),opts),
+ delete:key=>ns.delete(key),
+ async list(){const blobs=[];let cursor;do{const r=await ns.list({cursor});blobs.push(...r.keys.map(k=>({key:k.name})));cursor=r.list_complete?undefined:r.cursor;}while(cursor);return {blobs};}
 });
-let E;
-export const bind=env=>{E=env;};
-export const orders=()=>mk(E.ORDERS);
-export const reservations=()=>mk(E.RESERVATIONS);
-export const inquiries=()=>mk(E.INQUIRIES);
-export const events=()=>mk(E.EVENTS);
-const config=()=>mk(E.CONFIG);
-export const STARTING_SETS=3000;
-export async function getTotal(){
-  const c=await config().get('inventory',{type:'json'});
-  return (c&&Number.isSafeInteger(c.total))?c.total:STARTING_SETS;
-}
-export async function soldSets(){
-  let sold=0;const l=await orders().list();
-  for(const {key} of l.blobs){const o=await orders().get(key,{type:'json'});
-    if(o&&o.livemode===true&&Number.isSafeInteger(o.totalSets))sold+=o.totalSets;}
-  return sold;
-}
-export async function reservedSets(){
-  let r=0;const l=await reservations().list();
-  for(const {key} of l.blobs){const v=await reservations().get(key,{type:'json'});
-    if(v&&v.livemode===true&&Number.isSafeInteger(v.sets))r+=v.sets;}
-  return r;
-}
-export async function availability(){
-  const [total,sold,reserved]=await Promise.all([getTotal(),soldSets(),reservedSets()]);
-  return {total,sold,reserved,available:total-sold-reserved};
+export function stores(env){return {orders:store(env.ORDERS),reservations:store(env.RESERVATIONS),inquiries:store(env.INQUIRIES),events:store(env.EVENTS)};}
+export async function availability(env,{excludeReservation}={}){
+ const {orders,reservations}=stores(env),live=env.FAVROE_PAYMENT_MODE==='live';
+ const c=await store(env.CONFIG).get(live?'inventory':'inventory-test',{type:'json'});
+ // A separate test ledger prevents sandbox purchases changing live stock.
+ const total=c?.total??(!live?3000:null);
+ if(!Number.isSafeInteger(total)||total<0)throw new Error('Inventory configuration missing');
+ let sold=0,reserved=0;
+ for(const {key} of (await orders.list()).blobs){const o=await orders.get(key,{type:'json'});if(o?.livemode===live&&Number.isSafeInteger(o.totalSets))sold+=o.totalSets;}
+ for(const {key} of (await reservations.list()).blobs){if(key===excludeReservation)continue;const r=await reservations.get(key,{type:'json'});if(r?.livemode===live&&Number.isSafeInteger(r.sets)&&Date.parse(r.expiresAt)>Date.now())reserved+=r.sets;}
+ return {mode:live?'live':'test',total,sold,reserved,available:Math.max(0,total-sold-reserved),atomic:false};
 }

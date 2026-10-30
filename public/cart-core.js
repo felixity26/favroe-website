@@ -23,6 +23,7 @@ function checkout(config,cart){
  if(!lines.length)return {error:'Add a pack to your bag first.'};
  if(!config.checkout.enabled)return {error:'Checkout is not connected yet. This preview cannot take payment or place an order.'};
  for(const line of lines){const p=item(config,line.key);if(!p.finish.selectable||!p.finish.stockConfirmed||!p.variant.saleEnabled)return {error:'An item in your bag is not available for checkout. Please review your selection.'};}
+ if(totals(config,lines).sets>400)return {error:'Online orders are limited to 400 complete sets. Reduce your bag or request a bulk quote.'};
  if(config.checkout.endpoint!=='api/checkout')return {error:'The payment connection needs review.'};
  return {lines};
 }

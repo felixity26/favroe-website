@@ -1,23 +1,17 @@
 import {createCheckout} from '../_lib/stripe-checkout.js';
-import {bind,availability,reservations} from '../_lib/store.js';
-const json=(status,obj)=>new Response(JSON.stringify(obj),{status,headers:{'Content-Type':'application/json'}});
+import {stores,availability} from '../_lib/store.js';
 export async function onRequestPost({request,env}){
-  bind(env);
-  let reservedKey=null;
-  try{
-    const idem=request.headers.get('idempotency-key')||'';
-    const data=await request.clone().json().catch(()=>null);
-    const lines=Array.isArray(data?.lines)?data.lines:[];
-    const sets=lines.reduce((a,l)=>a+Number(String(l?.key||'').split('-')[1]||0)*Number(l?.quantity||0),0);
-    if(sets>0&&/^[a-f0-9-]{36}$/i.test(idem)){
-      const st=await availability();
-      if(sets>st.available)return json(409,{error:'This quantity is not currently in stock. Please reduce the bag or request a bulk quote.'});
-      reservedKey='FAV-'+idem;
-      await reservations().setJSON(reservedKey,{sets,livemode:env.FAVROE_PAYMENT_MODE==='live',createdAt:new Date().toISOString()});
-    }
-  }catch{/* store unreadable: do not block checkout on a store error */}
-  const res=await createCheckout(request,env);
-  if(reservedKey&&res.status>=400){try{await reservations().delete(reservedKey);}catch{}}
-  return res;
+ // Validation and Stripe price checks happen BEFORE any reservation write.
+ return createCheckout(request,env,fetch,{reserve:async({key,sets,expiresAt})=>{
+  const {reservations}=stores(env);
+  const existing=await reservations.get(key,{type:'json'});
+  if(existing&&existing.sets!==sets)throw new Error('This checkout reference belongs to a different bag.');
+  if(existing&&Date.parse(existing.expiresAt)<=Date.now())throw new Error('Checkout reference expired');
+  if(existing)return {expiresAt:Math.floor(Date.parse(existing.expiresAt)/1000)};
+  const stock=await availability(env,{excludeReservation:key});
+  if(sets>stock.available)throw new Error('This quantity is not currently in stock. Please reduce the bag or request a bulk quote.');
+  await reservations.setJSON(key,{sets,livemode:env.FAVROE_PAYMENT_MODE==='live',createdAt:new Date().toISOString(),expiresAt:new Date(expiresAt*1000).toISOString()},{expiration:expiresAt+300});
+  return {expiresAt};
+ }});
 }
-export const onRequestGet=()=>json(405,{error:'POST required.'});
+export const onRequestGet=()=>new Response(JSON.stringify({error:'POST required.'}),{status:405,headers:{'Content-Type':'application/json'}});

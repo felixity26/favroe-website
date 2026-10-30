@@ -1,0 +1,59 @@
+FAVRŒ — Functional launch audit and correction candidate
+October 29, 2026 · Test mode only · Not deployed
+Source: felixity26/favroe-website, commit d7d5303087b49401b6c9efde996dc0c5b6e8e2ed
+
+DECISION
+Not ready for live payments. A sandbox payment succeeds, but that does not prove inventory safety, fulfillment, webhook persistence, or delivery of notifications. This candidate deliberately blocks live checkout until atomic inventory allocation is implemented and verified. It does not change the approved branding, sleeve renderings, prices, or live payment configuration.
+
+VERIFIED ON THE RUNNING CLOUDFLARE SITE
+- Homepage, product, cart, contact, bulk form and five policy routes return 200.
+- /links/ returns 404; all five policy pages still contain founder-review placeholders.
+- Eleven invalid checkout requests were rejected: missing lines/state, AK, HI, PR, invalid state, 800 sets, mixed 450 sets, aluminum, fractional and negative quantities.
+- Unauthorized operations and inquiries GET requests return 401.
+- Aluminum is selectable for preview but Add to bag is disabled.
+- 200-set checkout opens Stripe Sandbox: $64.99 products + $12 shipping. A California test address produced $5.61 sandbox tax and $82.60 total. No real money moved.
+- Declined test card produced an explicit Stripe decline; FAVRŒ payment-status returned paid:false.
+- Successful test card returned to FAVRŒ, displayed payment confirmation, cleared the bag, and payment-status returned paid:true, refunded:false.
+- Test checkout reference is recorded in local audit evidence. Buyer labeled FAVROE QA TEST - DO NOT FULFILL. Email directed to essentials@favroe.com. Do not fulfill this sandbox transaction.
+- Mobile inquiry at 390 × 844 completed review and submission: reference recorded in local audit evidence. Clearly labeled internal QA, no order or sales follow-up requested. API/UI acceptance is verified; receipt in the inbox is NOT verified.
+- Stripe still displays “Forvae”, and its final shipping form offers AK/HI/territories. We did not complete an unsupported-address payment.
+- Source public JavaScript matched the active site's retrieved JavaScript before edits.
+
+IMPLEMENTED IN THIS CANDIDATE, NOT YET DEPLOYED
+- Checkout validation and price checks precede stock writes. Inventory failures stop session creation instead of allowing checkout through.
+- One-hour reservation expiration, stable on same-key retries. Separate sandbox inventory ledger; refunds never replenish either ledger.
+- 400-set frontend cap, bulk quote link, explicit $12 shipping copy, corrected test-mode text and accessible shipping-state label.
+- Webhook verifies latest Stripe session, configured price IDs, quantities, brand and payment mode. Supports completed and async-payment-succeeded events; handles signature rotation and invalid timestamps.
+- Paid orders retain paid status while unsupported/missing shipping addresses are held. Every sandbox order has a test hold. A hold is NOT a substitute for preventing unsupported-address payment before launch.
+- Customer and operations paid-order notifications via Resend, durable sent markers and provider idempotency keys. Provider failure leaves webhook retryable after saving the paid order. Provider acceptance is NOT inbox delivery verification.
+- Partial and full refunds distinguished; neither restocks. Payment return explicitly identifies sandbox transactions and refunds.
+- Inquiry sanitation preserves hyphens in names, email, dates, ZIP+4 and idempotency keys; rejects invalid quantity rather than silently clamping it; limits payload size and checks Origin.
+- Operations writes use record storage keys. Inquiry statuses cannot fabricate payment/refund records; sandbox/held/unpaid orders cannot be released to fulfillment.
+- Five drafted policy pages and static /links/ page included. False inquiry “we emailed you” promise removed until delivery is known. Removed catalog-draft links from changed pages.
+- All original public/assets files are byte-for-byte unchanged. Sleeve visuals retained; sleeve exclusion clarified beside product imagery and purchase choices.
+
+VALIDATION
+- 19 backend tests pass with mocked Stripe, KV and Resend: all four packs, storage failure, invalid carts, reservation retries, test/live isolation, final-address holds, item integrity, paid-order idempotency, notification retries, unpaid events, signature checks, refund inventory, inquiry sanitation and ops restrictions.
+- 22 frontend assertions pass: approved prices and quantities, all four packs, mixed and duplicate-line carts, aluminum restriction, invalid quantities and the 400-set cap.
+- Local browser verified 800-set cart remains blocked with California selected, on desktop and mobile. Static links page visually checked at 390 × 844.
+- These unit tests do not reproduce distributed KV races. No claim of atomicity or production readiness is made.
+
+LAUNCH BLOCKERS / REMAINING WORK
+1. ATOMIC INVENTORY: Current KV read-then-write reservations and event markers are eventually consistent. Concurrent checkouts can oversell; duplicate webhook deliveries can race. Replace authoritative allocation/order/event writes with a transactional D1 design or Durable Object, migrate/reconcile records and test concurrent last-stock purchases. This candidate keeps live checkout blocked meanwhile.
+2. FINAL ADDRESS: The website's pre-check is insufficient once Stripe allows address edits. The new webhook hold prevents fulfillment but may occur after payment. Implement and verify pre-payment final-address restrictions or an authorized payment/hold workflow before launch.
+3. DEPLOYMENT VERIFICATION: No Cloudflare dashboard login/deploy token is available in this session. GitHub token authenticates GitHub, not Cloudflare. Confirm the dashboard deployment commit, bindings, secret NAMES, webhook event subscriptions and preview deployment. Do not overwrite live with the old Netlify ZIP.
+4. EMAIL: Verify a sender domain for RESEND_FROM; committed onboarding@resend.dev is a test sender. Confirm customer and essentials@favroe.com inbox delivery, bounced mail handling and webhook notification retries. Inquiry email failures are still best-effort; add a retryable inquiry outbox before calling sales capture dependable. Instinct's operating destination remains unconnected.
+5. PERSISTENCE: Inspect the actual test order and inquiry in ops, reconcile totals, verify 50/100/200/400 purchases reduce test inventory exactly once, expire abandoned reservations, replay duplicate webhooks and refund without restock. These checks require authenticated ops/Stripe/Cloudflare access and are unverified on the deployed candidate.
+6. STRIPE IDENTITY: Correct checkout business display name from Forvae to approved FAVRŒ; verify allowed payment methods. Existing Stripe payment-method configuration is preserved; delayed methods still require end-to-end verification.
+7. SELLER PERMIT/TAX: Live tax remains blocked with live payments. Sandbox automatic tax is enabled. Verify permit, registration and approved tax settings before separate live authorization.
+8. INQUIRIES: Add rate limiting and transactional idempotency/outbox. Existing content deduplication uses time buckets and can race; do not treat it as exactly-once processing.
+9. POLICIES: Verify privacy notice against actual deployed processing/retention/providers and final approved operational commitments. Pages supplied are implementation drafts, not a legal compliance certification.
+10. SOCIAL/SEO: Actual social profile URLs are still pending; do not invent them. Keep noindex while testing. After checkout/operations acceptance, separately review production indexing, canonical URLs, sitemap, schema and link previews.
+
+MERGE / DEPLOY ORDER
+Review this candidate as a draft. Preserve all Cloudflare secret values and existing KV bindings. Deploy to a test preview first, configure a separate test webhook, and rerun E2E. Paid events must remain unprocessed/retryable if durable order or notification work fails. Do not activate live keys, remove the live guard, or publish a claim that the site is ready for commercial orders until the blockers are resolved and the founder authorizes launch.
+
+REFERENCE DOCUMENTATION
+Stripe sandbox testing: https://docs.stripe.com/testing
+Cloudflare KV consistency/atomic limitations: https://developers.cloudflare.com/kv/concepts/how-kv-works/
+Resend idempotency (24-hour provider window): https://resend.com/docs/dashboard/emails/idempotency-keys
