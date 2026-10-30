@@ -33,7 +33,7 @@
  if(paymentStatus){
   const id=new URLSearchParams(location.search).get('session_id');
   if(!id||location.protocol==='file:')paymentStatus.textContent='No payment has been verified on this preview.';
-  else fetch(route('api/payment-status?session_id='+encodeURIComponent(id))).then(async r=>{const d=await r.json();if(!r.ok)throw new Error(d.error||'Unable to verify payment.');if(d.paid){cart=[];save();}paymentStatus.textContent=d.paid?'Payment confirmed by Stripe. Keep your Stripe receipt; fulfillment is handled separately.':'Payment is not confirmed yet. Please check your Stripe receipt or contact the seller before paying again.';}).catch(()=>paymentStatus.textContent='We could not verify your payment here. Check your Stripe receipt before trying again.');
+  else fetch(route('api/payment-status?session_id='+encodeURIComponent(id))).then(async r=>{const d=await r.json();if(!r.ok)throw new Error(d.error||'Unable to verify payment.');if(d.paid===true){cart=[];save();}paymentStatus.textContent=d.refunded===true?'This payment has been refunded. Contact essentials@favroe.com if you have a question.':d.paid===true?(d.livemode===false?'Test payment confirmed. This sandbox transaction will not be fulfilled.':'Payment confirmed. Keep your payment reference; we will contact you with fulfillment details.'):'Payment is not confirmed yet. Please check your payment reference or contact essentials@favroe.com before paying again.';}).catch(()=>paymentStatus.textContent='We could not verify your payment here. Check your Stripe receipt before trying again.');
  }
  const rows=document.querySelector('#cart-items');
  if(rows){
