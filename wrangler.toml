@@ -35,3 +35,9 @@ STRIPE_SHIPPING_RATE_ID = "shr_1UVnWSC0hZh3AYsHHELDcG56"
 FAVROE_NOTIFY_EMAIL = "essentials@favroe.com"
 RESEND_FROM = "FAVROE <onboarding@resend.dev>"
 # Secrets set via wrangler pages secret put: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, FAVROE_OPS_TOKEN, RESEND_API_KEY
+
+[[d1_databases]]
+binding = "INVENTORY_DB"
+database_name = "favroe-inventory"
+database_id = "681e38aa-5447-4d25-936b-9e209357b568"
+migrations_dir = "migrations"

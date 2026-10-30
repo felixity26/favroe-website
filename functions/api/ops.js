@@ -1,3 +1,4 @@
+import {ledgerReservations} from '../_lib/inventory.js';
 // Authenticated operations records. Payment truth is separate from fulfillment.
 import {stores,availability} from '../_lib/store.js';
 import {notifyInquiry,inquiryNotificationStatus} from '../_lib/inquiry-notifications.js';
@@ -11,7 +12,7 @@ export async function onRequestGet({request,env}){
  if(!authed(request,env))return json(401,{error:'Not authorized.'});
  try{
   const {orders,reservations,inquiries,events}=stores(env);
-  const [orderList,inquiryList,reservationList,inventory]=await Promise.all([all(orders),all(inquiries,k=>k.startsWith('dupe-')||k.startsWith('idem-')),all(reservations),availability(env)]);
+  const [orderList,inquiryList,reservationList,inventory]=await Promise.all([all(orders),all(inquiries,k=>k.startsWith('dupe-')||k.startsWith('idem-')),env.INVENTORY_DB?ledgerReservations(env):all(reservations),availability(env)]);
   for(const item of inquiryList)item.notifications=await inquiryNotificationStatus(item.id,env);
   for(const order of orderList){order.notifications={};for(const role of ['operations','customer'])order.notifications[role]=await events.get('mail-'+order.sessionId+'-'+role,{type:'json'});}
   orderList.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));inquiryList.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
@@ -24,11 +25,18 @@ export async function onRequestPatch({request,env}){
  let data;try{data=JSON.parse(raw);}catch{return json(400,{error:'Bad request.'});}
  const {type,id,status,action}=data||{};
  if(!['inquiry','order'].includes(type)||typeof id!=='string'||id.length>200)return json(400,{error:'A valid record type and id are required.'});
- if(!(type==='inquiry'&&action==='retry_notifications')&&!(type==='order'?FULFILLMENT:INQUIRY_STATUSES).includes(status))return json(400,{error:'Choose a valid workflow status.'});
+ if(!(type==='order'&&action==='test_rehearsal')&&!(type==='inquiry'&&action==='retry_notifications')&&!(type==='order'?FULFILLMENT:INQUIRY_STATUSES).includes(status))return json(400,{error:'Choose a valid workflow status.'});
  try{
   const {orders,inquiries}=stores(env),store=type==='order'?orders:inquiries;
   const record=await store.get(id,{type:'json'});if(!record)return json(404,{error:'Record not found.'});
   if(type==='inquiry'&&action==='retry_notifications')return json(200,{updated:id,notifications:await notifyInquiry(record,env)});
+  if(type==='order'&&action==='test_rehearsal'){
+   if(record.livemode!==false||record.status!=='paid'||!['packing','shipped'].includes(data.stage))return json(409,{error:'Only paid sandbox orders can be rehearsed.'});
+   if(data.stage==='shipped'&&record.testWorkflow?.stage!=='packing')return json(409,{error:'Rehearse packing first.'});
+   record.testWorkflow={stage:data.stage,updatedAt:new Date().toISOString(),notice:'SIMULATION ONLY — DO NOT DISPATCH'};record.fulfillment='test_hold';
+   if(store.patch)await store.patch(id,{testWorkflow:record.testWorkflow,fulfillment:'test_hold'});else await store.setJSON(id,record);
+   return json(200,{updated:id,testWorkflow:record.testWorkflow,fulfillment:'test_hold'});
+  }
   if(type==='order'){
    if(record.livemode!==true||record.holdReason||!['paid','fulfillment','completed'].includes(record.status)||!['pending','fulfillment','completed'].includes(record.fulfillment))return json(409,{error:'Only verified paid orders without a hold can enter fulfillment.'});
    if(data.tracking!==undefined){
@@ -39,6 +47,6 @@ export async function onRequestPatch({request,env}){
    }
    record.status='paid';record.fulfillment=status;record.fulfillmentUpdatedAt=new Date().toISOString();
   }else{record.status=status;record.statusUpdatedAt=new Date().toISOString();}
-  await store.setJSON(id,record);return json(200,{updated:id,status:record.status,fulfillment:record.fulfillment});
+  if(type==='order'&&store.patch)await store.patch(id,{fulfillment:record.fulfillment,fulfillmentUpdatedAt:record.fulfillmentUpdatedAt,...(record.tracking?{tracking:record.tracking}:{})},{fulfillment:true});else await store.setJSON(id,record);return json(200,{updated:id,status:record.status,fulfillment:record.fulfillment});
  }catch{return json(503,{error:'The update could not be confirmed. Refresh the record before retrying.'});}
 }

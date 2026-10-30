@@ -1,3 +1,4 @@
+import {recordPaidOrder,releaseReservation} from '../_lib/inventory.js';
 import {stores} from '../_lib/store.js';
 import {orderFromSession} from '../_lib/order.js';
 import {notifyOrder} from '../_lib/notifications.js';
@@ -25,10 +26,10 @@ export async function onRequestPost({request,env}){
   const s=event.data?.object;
   if(['checkout.session.completed','checkout.session.async_payment_succeeded'].includes(event.type)){
    if(s?.metadata?.brand==='FAVROE'){
-    const full=await stripe('checkout/sessions/'+encodeURIComponent(s.id)+'?expand[]=line_items',env);
+    const full=await stripe('checkout/sessions/'+encodeURIComponent(s.id)+'?expand[]=line_items&expand[]=customer',env);
     const order=orderFromSession(full,env);
     if(order){
-     const existing=await orders.get(order.sessionId,{type:'json'});
+     const existing=env.INVENTORY_DB?await recordPaidOrder(env,order,full.client_reference_id):await orders.get(order.sessionId,{type:'json'});
      if(!existing)await orders.setJSON(order.sessionId,order);
      if(full.client_reference_id)await reservations.delete(full.client_reference_id);
      // Keep the event retryable if notification delivery to the provider fails.
@@ -36,11 +37,11 @@ export async function onRequestPost({request,env}){
     }
    }
   }else if(['checkout.session.expired','checkout.session.async_payment_failed'].includes(event.type)){
-   if(s?.metadata?.brand==='FAVROE'&&s.client_reference_id)await reservations.delete(s.client_reference_id);
+   if(s?.metadata?.brand==='FAVROE'&&s.client_reference_id){if(env.INVENTORY_DB)await releaseReservation(env,s.client_reference_id,s.id);await reservations.delete(s.client_reference_id);}
   }else if(event.type==='charge.refunded'){
    // Retrieve latest refund totals: events can arrive out of order.
    const charge=await stripe('charges/'+encodeURIComponent(s.id),env);
-   for(const {key} of (await orders.list()).blobs){const order=await orders.get(key,{type:'json'});if(order?.paymentIntent===charge.payment_intent&&order.livemode===event.livemode){order.status=charge.refunded||charge.amount_refunded>=charge.amount?'refunded':'partially_refunded';order.amountRefunded=charge.amount_refunded;order.refundedAt=new Date().toISOString();await orders.setJSON(key,order);}}
+   for(const {key} of (await orders.list()).blobs){const order=await orders.get(key,{type:'json'});if(order?.paymentIntent===charge.payment_intent&&order.livemode===event.livemode){order.status=charge.refunded||charge.amount_refunded>=charge.amount?'refunded':'partially_refunded';order.amountRefunded=charge.amount_refunded;order.refundedAt=new Date().toISOString();if(orders.patch)await orders.patch(key,{status:order.status,amountRefunded:order.amountRefunded,refundedAt:order.refundedAt});else await orders.setJSON(key,order);}}
   }
   await events.setJSON(event.id,{processedAt:new Date().toISOString(),type:event.type});
   return json(200,{received:true});
