@@ -1,0 +1,66 @@
+
+.favroe-footer{background:var(--au);color:var(--chalk);padding:0;border:0}
+.favroe-footer .footer-news{background:var(--chalk);color:var(--au);overflow:hidden}
+.favroe-footer .newsletter-layout{display:grid;grid-template-columns:1.05fr 1fr;gap:10%;align-items:center;padding-top:72px;padding-bottom:74px}
+.favroe-footer .invitation-copy h2{font-size:clamp(50px,5.6vw,80px);line-height:1.03;letter-spacing:-.065em;margin:24px 0 0}
+.favroe-footer .invitation-copy h2 span{display:inline-block;margin-left:44px;position:relative;z-index:0}
+.favroe-footer .invitation-copy h2 span:after{content:"";position:absolute;bottom:3px;left:0;right:0;height:9px;background:var(--ap);z-index:-1;transform:rotate(-1.5deg)}
+.favroe-footer .invitation-copy>p{font-size:15px;line-height:1.7;max-width:355px;margin-top:28px}
+.favroe-footer .note-rhythm{display:flex;align-items:center;gap:7px;margin-top:33px}
+.favroe-footer .note-rhythm i{display:block;width:12px;height:12px;border-radius:50%;background:var(--au);flex-shrink:0}
+.favroe-footer .note-rhythm i:nth-child(2){background:var(--ap)}
+.favroe-footer .note-rhythm i:nth-child(3){background:transparent;border:1px solid var(--au)}
+.favroe-footer .note-rhythm span{font-size:10px;margin-left:10px;max-width:200px;line-height:1.6}
+.favroe-footer .note-wrap{position:relative;isolation:isolate;margin-top:18px}
+.favroe-footer .note-wrap:before{content:"";position:absolute;inset:0;background:#e7d9cc;border:1px solid #49384822;transform:rotate(3deg);z-index:-1}
+.favroe-footer .note-seal{position:absolute;right:30px;top:-52px;width:96px;height:96px;z-index:2;transform:rotate(12deg);transition:transform .45s ease}
+.favroe-footer .note-wrap:hover .note-seal,.favroe-footer .note-wrap:focus-within .note-seal{transform:rotate(-10deg)}
+.favroe-footer .footer-signup{position:relative;padding:33px 35px 30px;background:var(--ap);color:var(--au);margin:0;transform:rotate(-1.5deg);transition:transform .35s ease}
+.favroe-footer .footer-signup:focus-within{transform:rotate(0)}
+.favroe-footer .note-heading{display:flex;justify-content:space-between;gap:20px;padding:0 0 42px;font-size:11px;line-height:1.6}
+.favroe-footer .note-heading span:last-child{font-size:9px;letter-spacing:.08em;margin-top:42px;white-space:nowrap}
+.favroe-footer label{display:block;font-size:12px;font-weight:600;margin-bottom:12px}
+.favroe-footer .signup-line{display:flex;flex-direction:column;gap:20px}
+.favroe-footer input{width:100%;min-width:0;background:transparent;color:var(--au);border:0;border-radius:0;border-bottom:1px solid var(--au);padding:11px 0;font-size:18px}
+.favroe-footer input::placeholder{color:var(--au);opacity:.8}
+.favroe-footer button{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--au);color:var(--chalk);padding:15px 19px;min-height:52px;border:1px solid var(--au);font-size:13px}
+.favroe-footer button span{font-size:22px;line-height:1;transition:transform .2s}
+.favroe-footer button:hover span{transform:translate(3px,-3px)}
+.favroe-footer .signup-note{font-size:12px;margin-top:18px;line-height:1.6}
+.favroe-footer .signup-consent{font-size:11px;line-height:1.6;margin-top:12px}
+.favroe-footer #newsletter-status{font-size:12px;line-height:1.6;margin-top:15px}
+.favroe-footer #newsletter-status:empty{display:none}
+.favroe-footer input[aria-invalid=true]{outline:2px solid var(--au);outline-offset:4px}
+.favroe-footer .footer-social{border-bottom:1px solid #f3eee740}
+.favroe-footer .social-layout{display:grid;grid-template-columns:1.1fr 1fr 1fr;align-items:stretch}
+.favroe-footer .social-layout>p{font-size:23px;letter-spacing:-.025em;margin:0;padding:28px 0;line-height:1.3}
+.favroe-footer .social-layout>p span{display:block;font-size:11px;letter-spacing:0;margin-top:6px}
+.favroe-footer .social-layout>a{display:flex;align-items:center;gap:12px;text-decoration:none;font-size:25px;letter-spacing:-.025em;border-left:1px solid #f3eee740;padding:24px 28px;transition:background .2s,color .2s}
+.favroe-footer .social-layout>a>svg{width:18px;height:18px;flex-shrink:0}
+.favroe-footer .social-arrow{width:39px;height:39px;border-radius:50%;border:1px solid #f3eee76b;display:flex;align-items:center;justify-content:center;margin-left:auto;font-size:25px;transition:transform .25s,background .25s}
+.favroe-footer .social-layout>a:hover,.favroe-footer .social-layout>a:focus-visible{background:var(--ap);color:var(--au)}
+.favroe-footer .social-layout>a:hover .social-arrow{transform:rotate(45deg);border-color:var(--au)}
+.favroe-footer .footer-directory{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:44px;padding-top:47px;padding-bottom:42px}
+.favroe-footer .footer-brand img{width:250px;max-width:100%;height:auto}
+.favroe-footer .footer-brand p{font-size:12px;margin-top:10px}
+.favroe-footer .footer-email{display:inline-flex;align-items:center;gap:16px;text-decoration:none;font-size:11px;min-height:44px;margin-top:16px}
+.favroe-footer nav h3{font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500;margin:0 0 13px;line-height:1.5;color:var(--ap)}
+.favroe-footer nav a{display:flex;align-items:center;min-height:38px;text-decoration:none;font-size:12px;line-height:1.5}
+.favroe-footer nav a:hover,.favroe-footer .footer-email:hover{text-decoration:underline;text-underline-offset:5px}
+.favroe-footer .footer-bottom{display:block;border:0;margin-top:0;padding:0}
+.favroe-footer .footer-payments{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:18px 0;border-top:1px solid #f3eee740}
+.favroe-footer .footer-payments p{font-size:11px;margin:0;line-height:1.6}
+.favroe-footer .payment-badges{list-style:none;display:flex;flex-wrap:wrap;gap:7px;margin:0;padding:0}
+.favroe-footer .payment-badges li{display:flex;align-items:center;justify-content:center;min-width:64px;height:32px;padding:0 7px;border:1px solid #f3eee76b;border-radius:4px;font-size:9px;font-weight:650;line-height:1.1;text-align:center}
+.favroe-footer .payment-visa{font-size:16px;font-style:italic;font-weight:800;letter-spacing:-.05em}
+.favroe-footer .payment-amex{font-size:8px;text-transform:uppercase}
+.favroe-footer .footer-colophon{display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid #f3eee740;padding:10px 0 17px;font-size:10px}
+.favroe-footer .footer-colophon p{font-size:10px;margin:0}.favroe-footer .footer-colophon small{font-size:10px}
+.favroe-footer .footer-colophon a{min-height:44px;display:flex;align-items:center;gap:12px;text-decoration:none}
+.favroe-footer a:focus-visible,.favroe-footer button:focus-visible{outline:2px solid var(--ap);outline-offset:4px}
+.favroe-footer .footer-news a:focus-visible,.favroe-footer .footer-news button:focus-visible,.favroe-footer input:focus-visible{outline:2px solid var(--au);outline-offset:4px}
+@media(max-width:1050px){.favroe-footer .newsletter-layout{gap:7%}.favroe-footer .footer-signup{padding:28px}.favroe-footer .social-layout>a{font-size:20px;padding:22px 18px}.favroe-footer .social-arrow{width:32px;height:32px;font-size:20px}.favroe-footer .footer-directory{gap:24px;grid-template-columns:1.5fr 1fr 1fr 1fr}.favroe-footer .footer-email{font-size:10px}}
+@media(max-width:760px){.favroe-footer .wrap{width:calc(100% - 40px)}.favroe-footer .newsletter-layout{grid-template-columns:1fr;gap:62px;padding-top:40px;padding-bottom:40px}.favroe-footer .invitation-copy h2{font-size:clamp(49px,12vw,70px);margin-top:18px}.favroe-footer .invitation-copy h2 span{margin-left:24px}.favroe-footer .invitation-copy h2 span:after{height:7px;bottom:1px}.favroe-footer .invitation-copy>p{font-size:14px;max-width:340px;margin-top:24px}.favroe-footer .note-rhythm{margin-top:22px}.favroe-footer .note-wrap{margin:0 4px}.favroe-footer .footer-signup{padding:25px;transform:rotate(-1deg)}.favroe-footer .note-seal{width:78px;height:78px;top:-40px;right:18px}.favroe-footer .note-heading{padding-bottom:22px;font-size:10px}.favroe-footer .note-heading span:last-child{margin-top:28px}.favroe-footer .social-layout{grid-template-columns:1fr 1fr}.favroe-footer .social-layout>p{grid-column:1/-1;padding:24px 0 18px;font-size:24px}.favroe-footer .social-layout>p span{display:inline;margin-left:14px;font-size:11px}.favroe-footer .social-layout>a{border-top:1px solid #f3eee740;border-left:0;font-size:17px;padding:20px 8px 20px 0;gap:8px}.favroe-footer .social-layout>a:last-child{border-left:1px solid #f3eee740;padding-left:16px}.favroe-footer .social-layout>a>svg{display:none}.favroe-footer .social-arrow{width:28px;height:28px;font-size:19px}.favroe-footer .footer-directory{grid-template-columns:1fr 1fr;gap:27px 20px;padding-top:32px;padding-bottom:28px}.favroe-footer .footer-brand{grid-column:1/-1;padding-bottom:18px;border-bottom:1px solid #f3eee740}.favroe-footer .footer-brand img{width:220px}.favroe-footer .footer-brand p{margin-top:6px}.favroe-footer .footer-email{font-size:12px;margin-top:8px}.favroe-footer nav a{min-height:44px;font-size:12px}.favroe-footer nav h3{margin-bottom:8px}.favroe-footer .footer-payments{align-items:flex-start;flex-direction:column;gap:12px;padding:18px 0}.favroe-footer .payment-badges{gap:6px}.favroe-footer .payment-badges li{min-width:58px;padding:0 6px}.favroe-footer .footer-colophon{display:grid;grid-template-columns:1fr auto;gap:4px;padding-bottom:19px}.favroe-footer .footer-colophon p{grid-column:1/-1;grid-row:2}.favroe-footer .footer-colophon a{grid-column:2;grid-row:1}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.favroe-footer *{transition:none!important}.favroe-footer .footer-signup,.favroe-footer .note-seal,.favroe-footer .social-arrow{transform:none!important}}
+
+.favroe-footer .newsletter-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}.favroe-footer button:disabled{cursor:wait;opacity:.7}

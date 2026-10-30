@@ -1,0 +1,30 @@
+FAVRŒ — approved footer and isolated newsletter integration
+
+Approved design: Refinement 03, October 30, 2026. All original SVG assets retained.
+Base: main 7d672737d2d971052d09ef780c39fd10aff65b66.
+
+Subscriber management:
+Resend > Audience > Segments > FAVRŒ Newsletter
+Segment: 2b0f284b-6538-4e31-9fbb-3d0b8c169757
+Topic: FAVRŒ notes (f37baf2d-32f4-4c52-8405-f7a898135844), public preference, opt-out by default.
+Only confirmed signup adds a contact and opts it into this topic. Never import orders/inquiries automatically. No campaigns have been authorized.
+Every future Broadcast MUST use this segment AND topic and Resend's unsubscribe link/preferences. Resend is authoritative for current subscription/suppression state; D1 stores consent history, not a marketing recipient list. Never export all D1 confirmed records as a send list. Review plan limits before any campaign; do not upgrade automatically.
+
+Newsletter database: favroe-newsletter, binding NEWSLETTER_DB.
+ID: 87687017-4dc9-4b04-81d1-62709d729620.
+Migrations in newsletter-migrations; DO NOT apply these to INVENTORY_DB.
+Existing 5 KV bindings, inventory D1, 4 secrets and all transaction code are preserved.
+No new API key; existing Resend key has Full access. Approved sender remains FAVRŒ <essentials@favroe.com>.
+
+Flow:
+POST /api/newsletter/signup validates email, explicit consent version, same-origin JSON and a honeypot, and enforces bounded-body and rate limits. Signup sends one confirmation email, never a campaign. Confirmation tokens are random, stored only as hashes, expire after 24h and require an explicit confirmation POST. Email scanners following GET cannot subscribe people.
+/newsletter/confirm and /newsletter/unsubscribe keep tokens in URL fragments, remove them from the address bar, and use no-referrer. Confirmation activates only the FAVRŒ notes topic. Global opt-outs are never silently reset. Unsubscribe also invalidates old confirmation links. The separate newsletter notice describes data handling without changing existing policies.
+
+Rate controls:
+8 signup attempts per connection/hour, one confirmation request per normalized email/day, and at most 30 confirmation sends/day. These limits are deliberately modest to reserve capacity for orders and reduce abuse. They are not a guarantee of remaining provider allowance; Resend failures are shown as errors. No automatic paid upgrade.
+Failed sends are not claimed successful. Transient confirmation failures remain retryable. Unconfirmed requests are removed after 30 days during signup processing; confirmed consent is retained for support. Preferences work independently from order mail.
+
+Publication:
+Use Wrangler Pages deploy, not dashboard ZIP upload. Recheck upstream main and production deployment before merging/deploying. Keep all existing settings. FAVROE_PAYMENT_MODE=test and FAVROE_LAUNCH_APPROVED=false must remain. Set newsletter configuration only after its dedicated database and Resend segment/topic exist.
+
+Review-only footer pages/scripts are excluded from this build. Newsletter acceptance requires one controlled confirmation/unsubscribe delivery test and public verification, in addition to automated tests. See the external implementation report for actual deployment and E2E status; this file is implementation documentation, not evidence that deployment has completed.
