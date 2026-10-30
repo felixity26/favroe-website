@@ -32,7 +32,7 @@ test('purchase refresh is deduplicated with persistent storage; missing storage 
 test('unpaid, refunded, held and test orders cannot create purchase payloads',()=>{
  const order={sessionId:data.transaction_id,livemode:true,status:'paid',currency:'usd',amountSubtotal:6499,shippingCents:1200,taxCents:0,items:[{key:'pink-200',packs:1,unitCents:6499}]};
  assert.equal(purchasePayload(order).value,64.99);assert.equal(purchasePayload(order).shipping,12);
- for(const change of [{livemode:false},{status:'refunded'},{status:'partially_refunded'},{status:'pending'},{fulfillment:'address_hold'},{amountSubtotal:1}])assert.equal(purchasePayload({...order,...change}),null);
+ for(const change of [{livemode:false},{status:'refunded'},{status:'partially_refunded'},{status:'pending'},{fulfillment:'address_hold'},{fulfillment:'stock_hold'},{holdReason:'Review needed'},{amountSubtotal:1}])assert.equal(purchasePayload({...order,...change}),null);
  assert.ok(!JSON.stringify(purchasePayload({...order,email:'private@example.com',shipping:{name:'Private'}})).includes('Private'));
 });
 test('purchase endpoint reads no storage while inactive/test and rejects invalid session',async()=>{
@@ -55,5 +55,5 @@ test('browser bootstrap makes zero Google requests before approval/consent and r
  const ctx={window,document,URL,URLSearchParams,location:{pathname:path,hostname:'favroe.com',origin:'https://favroe.com',search:''},localStorage:{getItem:()=>null,setItem:()=>{}},fetch:async()=>({ok:true,json:async()=>config})};
  vm.runInNewContext(source,ctx);if(grant)window.FavroeAnalytics.setConsent(true);await new Promise(resolve=>setImmediate(resolve));return {scripts,window,events};}
  assert.equal((await run(enabled)).scripts.length,0);assert.equal((await run({...enabled,activationApproved:false},'/product',true)).scripts.length,0);
- assert.equal((await run(enabled,'/ops/',true)).scripts.length,0);assert.equal((await run(enabled,'/product',true)).scripts.length,1);
+ for(const path of ['/ops/','/journal-preview/abc/','/journal-studio/'])assert.equal((await run(enabled,path,true)).scripts.length,0);assert.equal((await run(enabled,'/product',true)).scripts.length,1);
 });

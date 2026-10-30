@@ -29,7 +29,7 @@ export function createAnalytics({config,consent=false,internal=false,send,storag
 
 if(typeof window!=='undefined'&&typeof document!=='undefined') {
  const path=location.pathname.replace(/\/$/,'')||'/';
- const excluded=/^\/(ops|cart|payment-return|newsletter|journal-editor|journal-admin)(\/|$)/.test(path);
+ const excluded=/^\/(ops|cart|payment-return|newsletter|journal-editor|journal-admin|journal-preview|journal-studio)(\/|$)/.test(path);
  // Payment return may emit verified purchase only; it must never emit page_view.
  const paymentReturn=path==='/payment-return';
  const internal=['localhost','127.0.0.1','::1'].includes(location.hostname)||location.hostname.endsWith('.pages.dev');

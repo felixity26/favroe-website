@@ -14,7 +14,7 @@ export function verificationMarkup(html,token='') {
  return html.replace(/<\/head\s*>/i,`<meta name="google-site-verification" content="${token}"></head>`);
 }
 export function purchasePayload(order) {
- if(!order||order.livemode!==true||order.status!=='paid'||order.fulfillment==='address_hold'||!/^cs_live_[A-Za-z0-9]+$/.test(order.sessionId||''))return null;
+ if(!order||order.livemode!==true||order.status!=='paid'||(order.holdReason||String(order.fulfillment||'').endsWith('_hold'))||!/^cs_live_[A-Za-z0-9]+$/.test(order.sessionId||''))return null;
  if(order.currency!=='usd'||!Number.isSafeInteger(order.amountSubtotal)||order.amountSubtotal<0||!Array.isArray(order.items)||!order.items.length)return null;
  const items=order.items.map(i=>({item_id:i.key,item_name:`Pink · ${Number(i.key?.split('-')[1])} complete sets`,price:i.unitCents/100,quantity:i.packs}));
  if(items.some(i=>!/^pink-(50|100|200|400)$/.test(i.item_id)||!Number.isSafeInteger(i.quantity)||i.quantity<1||!Number.isFinite(i.price)||i.price<0))return null;
