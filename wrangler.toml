@@ -20,6 +20,9 @@ binding = "CONFIG"
 id = "04a3f24a832f410b898a1dbf67e72635"
 
 [vars]
+JOURNAL_PREVIEW = "false"
+GA4_ACTIVATION_APPROVED = "false"
+GA4_CONSENT_APPROVED = "false"
 FAVROE_NEWSLETTER_ENABLED = "true"
 RESEND_NEWSLETTER_SEGMENT_ID = "2b0f284b-6538-4e31-9fbb-3d0b8c169757"
 RESEND_NEWSLETTER_TOPIC_ID = "f37baf2d-32f4-4c52-8405-f7a898135844"
@@ -50,3 +53,9 @@ binding = "NEWSLETTER_DB"
 database_name = "favroe-newsletter"
 database_id = "87687017-4dc9-4b04-81d1-62709d729620"
 migrations_dir = "newsletter-migrations"
+
+[[d1_databases]]
+binding = "JOURNAL_DB"
+database_name = "favroe-journal"
+database_id = "402c3a32-7e84-4c6a-a532-86b1f511ee13"
+migrations_dir = "journal-migrations"

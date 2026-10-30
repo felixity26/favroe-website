@@ -13,3 +13,12 @@
 /newsletter/*
   Referrer-Policy: no-referrer
   Cache-Control: no-store
+
+/journal-studio.js
+  Cache-Control: no-store
+/journal-studio.css
+  Cache-Control: public, max-age=0, must-revalidate
+/journal.css
+  Cache-Control: public, max-age=0, must-revalidate
+/analytics.js
+  Cache-Control: public, max-age=0, must-revalidate

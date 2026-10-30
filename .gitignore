@@ -4,3 +4,9 @@ node_modules/
 .env.*
 *.pem
 .DS_Store
+
+.journal-local/
+sources/
+
+.dev.vars
+.dev.vars.*

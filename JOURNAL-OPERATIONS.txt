@@ -1,0 +1,138 @@
+FAVRŒ — JOURNAL OPERATIONS
+Release edition · October 30, 2026
+
+PUBLIC JOURNAL: https://favroe.com/journal/
+PRIVATE EDITOR: https://favroe.com/journal-studio/
+
+Instinct prepares → founder reviews the saved version → founder approves →
+Instinct publishes that exact approved version. Three entries weekly is a
+preparation cadence, not automatic publication approval. Routine content updates
+use the browser editor; they require no Git or per-article Codex deployment.
+
+ACCESS
+Sign in with your private journal access key. Instinct receives only editor access;
+Felicity keeps founder review access separate. These keys are independent of
+Operations, Stripe and Cloudflare. Obtain them through the founder's secure
+handoff, never a public document or repository. No credentials are in this guide.
+The system records role identities (Instinct editor / Founder), not named accounts.
+Sign out when finished. Sessions expire after four hours. The technical owner can
+rotate a role key to revoke its existing sessions. No email reset or MFA exists
+in this initial small-team access model. Never give the founder key to an editor.
+
+1. PREPARE AN ENTRY — INSTINCT
+Choose New entry. Enter title, stable URL name, summary and SEO description.
+The URL name uses lowercase words and hyphens; it is locked after first save.
+The article title can change later without changing its address.
+Paste the body or use Import .md / .txt / .json. Markdown/plain-text imports fill
+the body. JSON imports can fill the complete fields; ask the technical owner for the current JSON field example.
+Imports do not save or publish automatically. Review the fields, then Save draft.
+
+Use normal paragraphs. The Heading, List, Link and Emphasis controls insert the
+supported formatting. Examples:
+  ## A section heading
+  ### A smaller heading
+  - A list item
+  **A little emphasis**
+  [Explore the packaging](/product/)
+HTML is displayed as text, not executed. Unsupported complex formatting is not
+an HTML/page-builder feature. Use Preview saved version to check the result.
+The brand wordmark, fonts, layout and footer belong to the template, not the body.
+
+2. IMAGES
+Open Images and captions. Choose PNG, JPEG or WebP, at most 750 KB per image.
+Add descriptive alt text and an optional caption, then choose cover or body.
+Save the draft after uploading; until attached to a saved version, the image
+is not part of that article. Maximum 20 distinct images per entry.
+Upload local files rather than pasting remote image URLs. Avoid SVG, HTML and GIF.
+Use actual approved assets; do not invent product features or imply that a sleeve
+is included. Where relevant, explain that sleeves, food and sealing stickers are
+not included in the standard set. Sleeve renderings may still be used with that
+context; the founder did not authorize removing all sleeve imagery.
+A private draft's images require journal authentication unless the same image
+has already been used in a currently published article. Previously public content
+cannot be made unknown to anyone who already downloaded it.
+
+3. SOURCE NOTES AND LINKS
+Open Related links and source notes. Related links use one line per link:
+  Explore the packaging | /product/
+  Wholesale quantities | /wholesale/
+Record source and factual questions in the private fields. These are not rendered
+in the public article or preview body, but remain visible in the editor.
+Do not invent author credentials, testimonials, benefits or current stock claims.
+Keep the voice considered, expressive, assured and quietly witty. Journal interface copy does not replace the approved brand voice.
+
+4. REQUEST REVIEW
+Save, preview, then Send for review. Share the exact preview URL and version ID
+with the founder through an authorized channel. The founder must sign in to view
+it; an unguessable URL or noindex tag alone is not used as protection.
+The editor does not send review emails or notifications automatically. This scope
+does not add a campaign, scheduled publisher or new external integration.
+
+5. FOUNDER REVIEW
+Sign in using founder access. Select the entry and open its saved preview.
+Review body, cover/body images, captions, metadata, links and commercial claims.
+Compare the version ID with the version being approved. Add a specific approval
+note, select Approve this version, then Confirm decision. Approval is recorded
+with the revision and timestamp. Approval alone does not publish the entry.
+If changes are needed, add a note and choose Request changes. Instinct revises and
+resubmits. Any new saved version needs a fresh founder approval.
+
+6. PUBLISH — AFTER RECORDED APPROVAL
+Instinct selects the approved entry, chooses Publish approved version and confirms.
+The backend checks the exact approved revision. The public article, /journal/
+index and sitemap update from the database without a source edit or deployment.
+First publication and last public update dates are generated by the system;
+draft saves do not falsely change the public article's “Updated” date.
+Check the public article, image/caption, links and journal listing after publishing.
+There is no scheduled publication and no approval inferred from a weekly cadence.
+
+7. CORRECTIONS, RECOVERY AND UNPUBLISHING
+Editing a published entry creates a private new draft. The earlier approved
+version remains live until the correction is separately approved and published.
+A stale browser save is rejected if someone has already saved a newer revision.
+Reload and reconcile the two drafts; do not assume a rejected save was retained.
+Version history & activity lets you preview old saved versions. Restore as draft
+creates another revision; it never rolls an old version straight into public view.
+For an urgent removal, the founder records a reason, selects Unpublish and confirms.
+The public route returns 404; index/sitemap membership is removed and images with
+no other published references become private. Search-engine caches may take time
+to catch up. Republishing still requires review and approval.
+
+8. BACKUP AND MAINTENANCE
+Export entry downloads JSON for the current form fields. Export is useful for
+content transfer, but is not a full database backup: media IDs work only in their
+original environment and exported JSON contains no approval audit/history.
+Keep original image files. The technical owner should back up the dedicated D1
+journal database before migrations/releases and verify a restore in an isolated environment.
+Images share a deliberate 100 MiB application storage ceiling. Unused uploads and
+old revisions are retained for recovery; no automatic deletion is implemented.
+Monitor capacity and establish a retention/expansion plan before it fills. The
+editor clearly reports a full store instead of silently dropping an upload.
+
+OPERATOR ACCEPTANCE
+The technical checks exercise both roles. Instinct still needs to sign in using
+its own secure access and rehearse import, image upload, save and private review.
+Use a clearly labeled draft for the rehearsal; do not publish it. The founder
+must record approval of each real article and every later public correction.
+
+TECHNICAL OWNER
+Repository: https://github.com/felixity26/favroe-website
+Hosting: existing Cloudflare Pages project favroe; deploy through Wrangler.
+Dedicated JOURNAL_DB with journal-migrations/. Keep inventory/newsletter stores
+and all existing KV bindings intact. Never migrate preview databases or synthetic
+local approvals to production. JOURNAL_PREVIEW=true keeps isolated previews
+noindexed; production uses false and only published revisions are public.
+Run node --test tests/*.test.js and compile Pages before a code release.
+Regenerate functions/_lib/journal-shell.js with scripts/sync-journal-shell.mjs
+when an approved header/footer changes. Articles do not edit that shared shell.
+Back up the journal D1 database before migrations. Use a private export location;
+never commit drafts, access keys, database files or backups to the public repo.
+Retain earlier deployment IDs for code rollback and retain the journal database.
+Rollback must preserve current public indexing and private/operational exclusions.
+
+GOOGLE AND COMMERCIAL BOUNDARIES
+This release keeps GA4 activation and consent flags false, with no measurement ID.
+Instinct is handling Google account setup under essentials@favroe.com. Consent,
+DebugView, private/test exclusions and journal CSP need verification before later
+tracking activation. Stripe remains in test mode; this release is not approval
+for live charges, campaigns, DNS changes or additional commercial claims.
