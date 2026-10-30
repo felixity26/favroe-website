@@ -1,0 +1,10 @@
+PRAGMA foreign_keys=ON;
+CREATE TABLE IF NOT EXISTS journal_entries(id TEXT PRIMARY KEY, slug TEXT NOT NULL UNIQUE, head TEXT, published TEXT, state TEXT NOT NULL DEFAULT 'draft', created TEXT NOT NULL, first_published TEXT, updated TEXT);
+CREATE TABLE IF NOT EXISTS journal_versions(id TEXT PRIMARY KEY, entry_id TEXT NOT NULL REFERENCES journal_entries(id), document TEXT NOT NULL, created TEXT NOT NULL, actor TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS journal_approvals(revision TEXT PRIMARY KEY REFERENCES journal_versions(id), actor TEXT NOT NULL, approved TEXT NOT NULL, note TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS journal_events(id TEXT PRIMARY KEY, entry_id TEXT NOT NULL, revision TEXT, action TEXT NOT NULL, actor TEXT NOT NULL, created TEXT NOT NULL, note TEXT NOT NULL DEFAULT '');
+CREATE TABLE IF NOT EXISTS journal_media(id TEXT PRIMARY KEY, mime TEXT NOT NULL, bytes BLOB NOT NULL, created TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS journal_media_refs(revision TEXT NOT NULL REFERENCES journal_versions(id), media TEXT NOT NULL REFERENCES journal_media(id), PRIMARY KEY(revision,media));
+CREATE TABLE IF NOT EXISTS journal_login_limits(bucket TEXT PRIMARY KEY, attempts INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS journal_versions_entry ON journal_versions(entry_id,created);
+CREATE INDEX IF NOT EXISTS journal_media_ref_lookup ON journal_media_refs(media,revision);
