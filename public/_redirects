@@ -1,1 +1,5 @@
 https://www.favroe.com/* https://favroe.com/:splat 301
+
+/review /ops/ 302
+/review/ /ops/ 302
+/review/index.html /ops/ 302
