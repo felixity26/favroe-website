@@ -33,7 +33,7 @@
  const paymentHeading=document.querySelector('#payment-heading');
  if(paymentStatus){
   const id=new URLSearchParams(location.search).get('session_id');
-  if(!id||location.protocol==='file:')paymentStatus.textContent='No payment has been verified on this preview.';
+  if(!id||location.protocol==='file:')paymentStatus.textContent='No payment reference was supplied. Check your confirmation email or contact essentials@favroe.com.';
   else fetch(route('api/payment-status?session_id='+encodeURIComponent(id))).then(async r=>{const d=await r.json();if(!r.ok)throw new Error(d.error||'Unable to verify payment.');if(d.paid===true){cart=[];save();}if(paymentHeading)paymentHeading.textContent=d.refunded===true?'Payment refunded.':d.paid===true?(d.livemode===false?'Test payment confirmed.':'Payment confirmed.'):'Payment not confirmed.';paymentStatus.textContent=d.refunded===true?'This payment has been refunded. Contact essentials@favroe.com if you have a question.':d.paid===true?(d.livemode===false?'Test payment confirmed. This sandbox transaction will not be fulfilled.':'Payment confirmed. Keep your payment reference; we will contact you with fulfillment details.'):'Payment is not confirmed yet. Please check your payment reference or contact essentials@favroe.com before paying again.';}).catch(()=>{if(paymentHeading)paymentHeading.textContent='Payment needs checking.';paymentStatus.textContent='We could not verify your payment here. Check your Stripe receipt before trying again.';});
  }
  const rows=document.querySelector('#cart-items');
@@ -56,9 +56,17 @@
    const result=core.checkout(config,cart);const noState=stateEl&&!stateEl.value;checkout.disabled=!!result.error||noState;checkout.textContent=config.checkout.enabled?'Continue to secure checkout':'Checkout connection pending';status.textContent=result.error||(noState?'Choose your shipping state to continue. We ship within the continental United States.':'Shipping, applicable tax and final payment totals are shown on Stripe’s checkout page.');
   }
   stateEl?.addEventListener('change',render);
+  let attemptBody='',attemptKey='';
+  const deliveryForm=document.querySelector('#delivery-form');
+  deliveryForm?.addEventListener('submit',e=>{e.preventDefault();checkout.click();});
   checkout.addEventListener('click',async()=>{const result=core.checkout(config,cart);if(result.error){status.textContent=result.error;return;}if(stateEl&&!stateEl.value){status.textContent='Choose your shipping state to continue.';return;}if(location.protocol==='file:'){status.textContent='Stripe checkout requires the hosted website. No payment was started.';return;}
+   if(deliveryForm&&!deliveryForm.reportValidity())return;
+   const delivery=Object.fromEntries(['name','email','line1','line2','city','postal_code'].map(k=>[k,document.querySelector('#delivery-'+k)?.value||'']));
+   const payload=JSON.stringify({lines:result.lines,state:stateEl?stateEl.value:'',delivery});if(payload!==attemptBody){attemptBody=payload;attemptKey=crypto.randomUUID();}
    checkout.disabled=true;status.textContent='Opening secure Stripe checkout…';
-   try{const response=await fetch(route(config.checkout.endpoint),{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()},body:JSON.stringify({lines:result.lines,state:stateEl?stateEl.value:''})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Checkout could not be opened.');const target=new URL(data.url);if(target.protocol!=='https:'||target.hostname!=='checkout.stripe.com')throw new Error('The payment destination could not be verified.');location.assign(target.href);}catch(e){status.textContent=e.message;checkout.disabled=false;}
+   try{const response=await fetch(route(config.checkout.endpoint),{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':attemptKey},body:payload});const data=await response.json();if(!response.ok)throw new Error(data.error||'Checkout could not be opened.');const target=new URL(data.url);if(target.protocol!=='https:'||target.hostname!=='checkout.stripe.com')throw new Error('The payment destination could not be verified.');location.assign(target.href);}catch(e){status.textContent=e.message;checkout.disabled=false;}
   });render();
+  const cancelled=new URLSearchParams(location.search).get('cancel');
+  if(cancelled&&/^[a-f0-9-]{36}$/i.test(cancelled))fetch(route('api/cancel-checkout'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reference:cancelled})}).then(async r=>{const d=await r.json();status.textContent=r.ok?'Checkout cancelled. Your bag is here when you need it.':d.error;}).catch(()=>{status.textContent='Your bag is saved. Checkout cancellation could not be confirmed; contact us before trying again.';});
  }
 })();

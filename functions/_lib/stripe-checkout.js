@@ -32,19 +32,36 @@ export async function createCheckout(request,env,fetcher=fetch,hooks={}){
  const LOWER48=new Set('AL,AZ,AR,CA,CO,CT,DE,DC,FL,GA,ID,IL,IN,IA,KS,KY,LA,ME,MD,MA,MI,MN,MS,MO,MT,NE,NV,NH,NJ,NM,NY,NC,ND,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VT,VA,WA,WV,WI,WY'.split(','));
  if(!shipState)return reply(400,{error:'Choose your shipping state to continue.'});
  if(!LOWER48.has(shipState))return reply(400,{error:'We currently ship within the continental United States only.'});
+ const d=data.delivery;
+ if(!d||typeof d!=='object')return reply(400,{error:'Enter your delivery details before continuing.'});
+ const clean=(v,n)=>typeof v==='string'?v.trim().slice(0,n):'';
+ const delivery={name:clean(d.name,120),email:clean(d.email,254).toLowerCase(),line1:clean(d.line1,200),line2:clean(d.line2,200),city:clean(d.city,120),postal_code:clean(d.postal_code,10),state:shipState,country:'US'};
+ if(!delivery.name||!delivery.line1||!delivery.city||!/^\S+@\S+\.\S+$/.test(delivery.email)||!/^\d{5}(-\d{4})?$/.test(delivery.postal_code)||Object.values(delivery).some(v=>/[\u0000-\u001f]/.test(v)))return reply(400,{error:'Check your name, email and complete delivery address.'});
+ // Block ZIP ranges for non-contiguous states/territories even if state is spoofed.
+ const zip=Number(delivery.postal_code.slice(0,5));
+ if(zip<1000||(zip>=96700&&zip<=96999)||zip>=99500)return reply(400,{error:'We currently ship to the lower 48 states and DC only.'});
+
  try{
  const expiresAt=Math.floor(Date.now()/1000)+3600;
- const form=new URLSearchParams({mode:'payment',expires_at:String(expiresAt),'metadata[shipping_state]':shipState,success_url:setup.origin+'/payment-return/?session_id={CHECKOUT_SESSION_ID}',cancel_url:setup.origin+'/cart/',client_reference_id:'FAV-'+requestKey,'metadata[brand]':'FAVROE','metadata[sets]':String(sets),'payment_intent_data[metadata][brand]':'FAVROE','automatic_tax[enabled]':env.FAVROE_AUTOMATIC_TAX,'shipping_options[0][shipping_rate]':env.STRIPE_SHIPPING_RATE_ID});
-  env.FAVROE_SHIPPING_COUNTRIES.split(',').forEach((country,i)=>form.set(`shipping_address_collection[allowed_countries][${i}]`,country));
+ const form=new URLSearchParams({mode:'payment','branding_settings[display_name]':'FAVRŒ',expires_at:String(expiresAt),'metadata[shipping_state]':shipState,success_url:setup.origin+'/payment-return/?session_id={CHECKOUT_SESSION_ID}',cancel_url:setup.origin+'/cart/?cancel='+requestKey,client_reference_id:'FAV-'+requestKey,'metadata[brand]':'FAVROE','metadata[sets]':String(sets),'payment_intent_data[metadata][brand]':'FAVROE','automatic_tax[enabled]':env.FAVROE_AUTOMATIC_TAX,'shipping_options[0][shipping_rate]':env.STRIPE_SHIPPING_RATE_ID});
+  // Delivery is validated here; hosted Checkout collects billing/payment only.
   for(const [i,line] of data.lines.entries()){
    const count=Number(line.key.split('-')[1]),id=env['STRIPE_PRICE_PINK_'+count];if(!/^price_[A-Za-z0-9]+$/.test(id||''))return reply(503,{error:'This pack is awaiting payment setup.'});
    const price=await stripe('prices/'+id,{method:'GET'},env,fetcher);
    if(!price.active||price.currency!=='usd'||price.unit_amount!==prices[count]||price.type!=='one_time'||price.livemode!==setup.live||price.metadata?.favroe_sku!==line.key)return reply(503,{error:'This pack’s price or availability needs confirmation.'});
    form.set(`line_items[${i}][price]`,id);form.set(`line_items[${i}][quantity]`,line.quantity);
   }
-  if(hooks.reserve){try{const hold=await hooks.reserve({key:'FAV-'+requestKey,sets,expiresAt});if(hold?.expiresAt)form.set('expires_at',String(hold.expiresAt));}catch{return reply(503,{error:'Stock could not be reserved. No payment was started. Please try again or request a quote.'});}}
+  if(hooks.reserve){try{const hold=await hooks.reserve({key:'FAV-'+requestKey,sets,expiresAt,fingerprint:Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify({lines:data.lines,delivery})))),v=>v.toString(16).padStart(2,'0')).join('')});if(hold?.expiresAt)form.set('expires_at',String(hold.expiresAt));}catch{return reply(503,{error:'Stock could not be reserved. No payment was started. Please try again or request a quote.'});}}
+  const customerForm=new URLSearchParams({name:delivery.name,email:delivery.email,'shipping[name]':delivery.name,'metadata[favroe_checkout]':requestKey});
+  for(const k of ['line1','line2','city','postal_code','state','country']){customerForm.set(`shipping[address][${k}]`,delivery[k]);customerForm.set(`address[${k}]`,delivery[k]);}
+  const customer=await stripe('customers',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Idempotency-Key':'favroe-customer-'+requestKey},body:customerForm},env,fetcher);
+  if(!/^cus_[A-Za-z0-9]+$/.test(customer.id||''))throw new Error('Customer setup failed');
+  form.set('customer',customer.id);form.set('customer_update[address]','never');form.set('customer_update[name]','never');
+  form.set('metadata[delivery_source]','validated_customer');
+  form.set('custom_text[submit][message]',`Deliver to: ${delivery.name}, ${delivery.line1}, ${delivery.line2?delivery.line2+', ':''}${delivery.city}, ${delivery.state} ${delivery.postal_code}. Return to your bag to change delivery details.`);
   const session=await stripe('checkout/sessions',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Idempotency-Key':'favroe-'+requestKey},body:form},env,fetcher);
   const target=new URL(session.url);if(target.protocol!=='https:'||target.hostname!=='checkout.stripe.com')throw new Error('Unexpected payment destination.');
+  if(hooks.attach)await hooks.attach('FAV-'+requestKey,session.id);
   return reply(200,{url:target.href});
  }catch{return reply(502,{error:'Checkout could not be opened. No order is confirmed. Please try again.'});}
 }

@@ -12,7 +12,7 @@ export function orderFromSession(s,env){
  });
  const totalSets=items.reduce((a,it)=>a+it.sets,0);
  if(totalSets<1||totalSets>400||String(totalSets)!==s.metadata.sets)throw new Error('Invalid set count');
- const shipping=s.collected_information?.shipping_details||s.shipping_details||null;
+ const shipping=s.metadata?.delivery_source==='validated_customer'?s.customer?.shipping:(s.collected_information?.shipping_details||s.shipping_details||null);
  const address=shipping?.address;
  const supported=address?.country==='US'&&LOWER48.has(address.state?.toUpperCase());
  return {id:'FAV-'+s.id.slice(-12),sessionId:s.id,paymentIntent:typeof s.payment_intent==='string'?s.payment_intent:s.payment_intent?.id||'',items,totalSets,amountTotal:s.amount_total,amountSubtotal:s.amount_subtotal,shippingCents:s.total_details?.amount_shipping,taxCents:s.total_details?.amount_tax,currency:s.currency,email:s.customer_details?.email||'',shipping,status:'paid',fulfillment:!s.livemode?'test_hold':supported?'pending':'address_hold',holdReason:!supported?'Delivery address missing or outside supported area':!s.livemode?'Sandbox order; do not fulfill':null,livemode:s.livemode,createdAt:new Date().toISOString()};

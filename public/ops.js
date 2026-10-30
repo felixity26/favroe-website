@@ -28,6 +28,11 @@ function row(rec,type){
   for(const e of [flow.select,carrier.input,number.input,url.input,save])e.disabled=locked;
   save.addEventListener('click',async()=>{save.disabled=true;error.textContent='Saving…';try{await api('PATCH',{type,id:rec.key||rec.sessionId,status:flow.select.value,tracking:{carrier:carrier.input.value,number:number.input.value,url:url.input.value}});await load();}catch(e){error.textContent=e.message;save.disabled=false;}});
   article.append(flow.wrap,carrier.wrap,number.wrap,url.wrap,save);
+  if(rec.livemode===false&&rec.status==='paid'){
+   article.append(node('p','Sandbox rehearsal: '+(rec.testWorkflow?.stage||'not started')+' — DO NOT DISPATCH'));
+   const rehearsal=node('button',rec.testWorkflow?.stage==='packing'?'Rehearse shipping':'Rehearse packing');rehearsal.type='button';
+   rehearsal.addEventListener('click',async()=>{rehearsal.disabled=true;try{await api('PATCH',{type,id:rec.key||rec.sessionId,action:'test_rehearsal',stage:rec.testWorkflow?.stage==='packing'?'shipped':'packing'});await load();}catch(e){error.textContent=e.message;rehearsal.disabled=false;}});article.append(rehearsal);
+  }
  }else{
   article.append(details([['Business',rec.business],['Contact',rec.name],['Email',rec.email],['Phone',rec.phone],['Location',rec.location],['Delivery ZIP',rec.zip],['Finish',rec.finish],['Complete sets requested',rec.quantity],['Requested date',rec.date],['Requirements',rec.requirements]]));
   const flow=statusSelect(['inquiry','quote','awaiting_payment','cancelled'],rec.status||'inquiry','Inquiry status');

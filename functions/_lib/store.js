@@ -1,3 +1,4 @@
+import {orderStore,inventoryAvailability} from './inventory.js';
 // Request-scoped KV access. KV remains unsuitable for atomic inventory allocation.
 export const store=ns=>({
  get:(key,opts={})=>ns.get(key,opts.type==='json'?'json':'text'),
@@ -5,8 +6,9 @@ export const store=ns=>({
  delete:key=>ns.delete(key),
  async list(){const blobs=[];let cursor;do{const r=await ns.list({cursor});blobs.push(...r.keys.map(k=>({key:k.name})));cursor=r.list_complete?undefined:r.cursor;}while(cursor);return {blobs};}
 });
-export function stores(env){return {orders:store(env.ORDERS),reservations:store(env.RESERVATIONS),inquiries:store(env.INQUIRIES),events:store(env.EVENTS)};}
+export function stores(env){return {orders:env.INVENTORY_DB?orderStore(env):store(env.ORDERS),reservations:store(env.RESERVATIONS),inquiries:store(env.INQUIRIES),events:store(env.EVENTS)};}
 export async function availability(env,{excludeReservation}={}){
+ if(env.INVENTORY_DB)return inventoryAvailability(env);
  const {orders,reservations}=stores(env),live=env.FAVROE_PAYMENT_MODE==='live';
  const c=await store(env.CONFIG).get(live?'inventory':'inventory-test',{type:'json'});
  // A separate test ledger prevents sandbox purchases changing live stock.
