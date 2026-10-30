@@ -89,7 +89,7 @@ export async function confirm(request,env){
    contact=await resend(env,'/contacts','POST',{email:row.email,unsubscribed:false,segments:[{id:env.RESEND_NEWSLETTER_SEGMENT_ID}],topics:[{id:env.RESEND_NEWSLETTER_TOPIC_ID,subscription:'opt_in'}]});
   }else{
    await resend(env,path+'/segments/'+encodeURIComponent(env.RESEND_NEWSLETTER_SEGMENT_ID),'POST');
-   await resend(env,path+'/topics','PATCH',{topics:[{id:env.RESEND_NEWSLETTER_TOPIC_ID,subscription:'opt_in'}]});
+   await resend(env,path+'/topics','PATCH',[{id:env.RESEND_NEWSLETTER_TOPIC_ID,subscription:'opt_in'}]);
   }
   const unsubscribe=randomToken();
   await dbq(env,"UPDATE newsletter_requests SET state='confirmed',confirmed_at=?,resend_contact_id=?,unsubscribe_hash=?,lock_until=0 WHERE token_hash=?",time,contact.id,await digest(unsubscribe),hash).run();
@@ -107,7 +107,7 @@ export async function unsubscribe(request,env){
  try{
  const path='/contacts/'+encodeURIComponent(row.email);
  const contact=await resend(env,path);
- if(contact)await resend(env,path+'/topics','PATCH',{topics:[{id:env.RESEND_NEWSLETTER_TOPIC_ID,subscription:'opt_out'}]});
+ if(contact)await resend(env,path+'/topics','PATCH',[{id:env.RESEND_NEWSLETTER_TOPIC_ID,subscription:'opt_out'}]);
  // Invalidate all confirmation links for this address so an older link cannot resubscribe it.
  await dbq(env,"UPDATE newsletter_requests SET state='unsubscribed',lock_until=0 WHERE email=?",row.email).run();
  await event(env,row.token_hash,'unsubscribed');
