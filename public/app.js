@@ -25,7 +25,7 @@ detailButtons.forEach(button=>button.addEventListener('click',()=>{
 }));
 
 // Optional analytics preparation: module fails closed unless activation and consent are approved.
-void import("/analytics.js?v=seo-preparation-20261030").catch(()=>{});
+void import("/analytics.js?v=consent-dispatch-fix-20261101").catch(()=>{});
 
 // Analytics consent banner: asks once, remembers the choice, gates /analytics.js.
 void import("/consent.js?v=consent-20261101").catch(()=>{});
