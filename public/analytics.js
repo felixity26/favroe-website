@@ -40,8 +40,7 @@ if(typeof window!=='undefined'&&typeof document!=='undefined') {
   booted=true;
   if(!loaded){
    loaded=true;window.gtag=gtag;
-   gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});
-   gtag('consent','update',{analytics_storage:'granted'});
+   // No consent-mode signaling: this loader runs only after explicit opt-in and Google ads features stay disabled in config. Queued gtag consent commands were verified on 2026-11-01 to stop gtag from dispatching any hits, so consent is enforced architecturally instead.
    gtag('js',new Date());
    gtag('config',config.measurementId,{send_page_view:false,allow_google_signals:false,allow_ad_personalization_signals:false,page_location:location.origin+location.pathname,page_referrer:document.referrer?new URL(document.referrer).origin:''});
    const script=document.createElement('script');script.async=true;script.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(config.measurementId);document.head.append(script);
