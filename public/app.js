@@ -28,4 +28,4 @@ detailButtons.forEach(button=>button.addEventListener('click',()=>{
 void import("/analytics.js?v=consent-dispatch-fix-20261101").catch(()=>{});
 
 // Analytics consent banner: asks once, remembers the choice, gates /analytics.js.
-void import("/consent.js?v=consent-20261101").catch(()=>{});
+void import("/consent.js?v=consent-20261101-2").catch(()=>{});

@@ -30,7 +30,7 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
   bar.querySelector('.fcb-accept').addEventListener('click',()=>done('granted'));
   bar.querySelector('.fcb-decline').addEventListener('click',()=>done('denied'));
  }
- void import('/analytics.js?v=seo-preparation-20261030').catch(()=>{}).finally(()=>{
+ void import('/analytics.js?v=consent-dispatch-fix-20261101').catch(()=>{}).finally(()=>{
   const stored=read();
   if(stored)apply(stored);else if(document.body)show();else document.addEventListener('DOMContentLoaded',show,{once:true});
  });
