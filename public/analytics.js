@@ -34,7 +34,9 @@ if(typeof window!=='undefined'&&typeof document!=='undefined') {
  const paymentReturn=path==='/payment-return';
  const internal=['localhost','127.0.0.1','::1'].includes(location.hostname)||location.hostname.endsWith('.pages.dev');
  let controller,config,loaded=false,granted=false,booted=false,denied=false;
- const gtag=(...args)=>{window.dataLayer=window.dataLayer||[];window.dataLayer.push(args);};
+ window.dataLayer=window.dataLayer||[];
+ // gtag.js ignores queued commands pushed as real Arrays; it requires Arguments objects.
+ function gtag(){window.dataLayer.push(arguments);}
  function boot() {
   if(booted||!controller?.allowed())return;
   booted=true;
