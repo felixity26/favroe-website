@@ -19,7 +19,7 @@
   function selected(){return finishInputs.find(i=>i.checked)?.value||'pink';}
   function render(){
    const finish=selected(),f=config.finishes[finish],p=config.packs.find(p=>p.sets===Number(pack.value));
-   document.querySelector('#shop-image').src=route(f.image);document.querySelector('#shop-image').alt=`${f.label} container set with fitted lid and individually wrapped pink shovel spoon.`;
+   document.querySelector('#shop-image').src=route(f.image);document.querySelector('#shop-image').alt=`${f.label} container set with fitted lid and individually packaged pink shovel spoon.`;
    finishInputs.forEach(i=>{i.disabled=false;i.closest('label').classList.toggle('selected',i.checked);});
    const qty=Number(count.value),valid=Number.isSafeInteger(qty)&&qty>=1&&qty<=20;
    document.querySelector('#shop-total').textContent=valid?`${p.sets*qty} ${f.label.toLowerCase()} sets · ${money(p.cents*qty)} USD`:'Choose between 1 and 20 packs.';
