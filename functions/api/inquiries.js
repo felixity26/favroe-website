@@ -30,14 +30,14 @@ async function handlePost({request,env}){
   let data;try{const reader=request.body?.getReader();if(!reader)throw new Error('Missing body');let text='',size=0;const decoder=new TextDecoder();while(true){const {value,done}=await reader.read();if(done)break;size+=value.byteLength;if(size>16384){await reader.cancel();return json(413,{error:'Inquiry too large.'});}text+=decoder.decode(value,{stream:true});}data=JSON.parse(text+decoder.decode());if(!data||typeof data!=='object')throw new Error('Invalid body');}catch{return json(400,{error:'Something was off with that. Please try again.'});}
   if(clean(data.website,200))return json(200,{received:true});
   const f={
-    finish:/^(pink|aluminum)$/.test(data.finish)?data.finish:'pink',
+    finish:/^(pink|aluminum|custom)$/.test(data.finish)?data.finish:'pink',
     business:clean(data.business,120),name:clean(data.name,100),
     email:clean(data.email,254).toLowerCase(),phone:clean(data.phone,40),
     location:clean(data.location,120),
     quantity:Number.isSafeInteger(Number(data.quantity))&&Number(data.quantity)>0&&Number(data.quantity)<=1000000?Number(data.quantity):0,
     zip:clean(data.zip,10),date:clean(data.date,10),requirements:clean(data.requirements,2000)
   };
-  if(!/^(pink|aluminum)$/.test(data.finish)||f.date&&(!/^\d{4}-\d{2}-\d{2}$/.test(f.date)||Number.isNaN(Date.parse(f.date))))return json(400,{error:'Check the finish and requested date.'});
+  if(!/^(pink|aluminum|custom)$/.test(data.finish)||f.date&&(!/^\d{4}-\d{2}-\d{2}$/.test(f.date)||Number.isNaN(Date.parse(f.date))))return json(400,{error:'Check the finish and requested date.'});
   if(!f.business||!f.name||!EMAIL.test(f.email)||!f.location||!f.quantity||!/^\d{5}(-\d{4})?$/.test(f.zip))
     return json(400,{error:'Please complete the required fields (business, contact, a valid email, location, quantity, ZIP).'});
   const idem=clean(request.headers.get('idempotency-key'),64);
